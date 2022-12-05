@@ -16,7 +16,7 @@ fn part1() {
 
     for line in lines {
         if let Ok(line) = line {
-            let (amount, to, from) = parse_move(&line);
+            let (amount, from, to) = parse_move(&line);
 
             for _ in 0..amount {
                 let c = { stacks[from].pop().unwrap() };
@@ -39,7 +39,7 @@ fn part2() {
 
     for line in lines {
         if let Ok(line) = line {
-            let (amount, to, from) = parse_move(&line);
+            let (amount, from, to) = parse_move(&line);
             let mut popped_crates = {
                 let from_stack = &mut stacks[from];
                 from_stack.split_off(from_stack.len() - amount)
@@ -91,19 +91,9 @@ where
 }
 
 fn partition(s: &str, n: usize) -> Vec<String> {
-    let mut segments: Vec<String> = Vec::new();
-    let chars = s.chars();
-
-    let mut cur = String::new();
-    for (i, char) in chars.enumerate() {
-        if (i + 1) % n == 0 {
-            segments.push(cur);
-            cur = String::new();
-        } else {
-            cur.push(char);
-        }
-    }
-    segments.push(cur);
-
-    segments
+    s.chars()
+        .collect::<Vec<char>>()
+        .chunks(n)
+        .map(|chunk| chunk.iter().collect::<String>())
+        .collect::<Vec<String>>()
 }
