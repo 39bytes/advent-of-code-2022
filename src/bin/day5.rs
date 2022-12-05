@@ -3,6 +3,7 @@ use std::io::{BufRead, BufReader, Lines};
 
 fn main() {
     part1();
+    part2();
 }
 
 fn part1() {
