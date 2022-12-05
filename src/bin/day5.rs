@@ -16,11 +16,7 @@ fn part1() {
 
     for line in lines {
         if let Ok(line) = line {
-            let instruction: Vec<&str> = line.split(' ').collect();
-
-            let amount: usize = instruction[1].parse().unwrap();
-            let from = instruction[3].parse::<usize>().unwrap() - 1;
-            let to = instruction[5].parse::<usize>().unwrap() - 1;
+            let (amount, to, from) = parse_move(&line);
 
             for _ in 0..amount {
                 let c = { stacks[from].pop().unwrap() };
@@ -43,12 +39,7 @@ fn part2() {
 
     for line in lines {
         if let Ok(line) = line {
-            let instruction: Vec<&str> = line.split(' ').collect();
-
-            let amount: usize = instruction[1].parse().unwrap();
-            let from = instruction[3].parse::<usize>().unwrap() - 1;
-            let to = instruction[5].parse::<usize>().unwrap() - 1;
-
+            let (amount, to, from) = parse_move(&line);
             let mut popped_crates = {
                 let from_stack = &mut stacks[from];
                 from_stack.split_off(from_stack.len() - amount)
@@ -61,6 +52,15 @@ fn part2() {
 
     let top: String = stacks.iter().map(|x| *x.last().unwrap()).collect();
     println!("Solution to part 2: {}", top);
+}
+
+fn parse_move(m: &str) -> (usize, usize, usize) {
+    let instruction: Vec<&str> = m.split(' ').collect();
+    (
+        instruction[1].parse().unwrap(),
+        instruction[3].parse::<usize>().unwrap() - 1,
+        instruction[5].parse::<usize>().unwrap() - 1,
+    )
 }
 
 fn parse_initial_stacks<B>(lines: &mut Lines<B>) -> Vec<Vec<char>>
@@ -83,12 +83,9 @@ where
         let segments = partition(&line, 4);
         for (i, c) in segments.iter().enumerate() {
             if !c.trim().is_empty() {
-                stacks[i].push(c.chars().nth(1).unwrap());
+                stacks[i].insert(0, c.chars().nth(1).unwrap());
             }
         }
-    }
-    for stack in stacks.iter_mut() {
-        stack.reverse();
     }
     stacks
 }
