@@ -69,7 +69,7 @@ where
 {
     let stack_lines: Vec<String> = lines
         .by_ref()
-        .take_while(|x| x.as_ref().unwrap().starts_with('['))
+        .take_while(|x| x.as_ref().unwrap().contains('['))
         .map(|r| r.unwrap())
         .collect();
 
@@ -99,9 +99,9 @@ fn partition(s: &str, n: usize) -> Vec<String> {
         if (i + 1) % n == 0 {
             segments.push(cur);
             cur = String::new();
-            continue;
+        } else {
+            cur.push(char);
         }
-        cur.push(char);
     }
     segments.push(cur);
 
