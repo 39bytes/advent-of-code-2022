@@ -81,14 +81,14 @@ fn main() {
                     ".." => {
                         let parent = match cur_node.borrow().clone() {
                             Node::Dir { parent, .. } => parent,
-                            _ => panic!("a"),
+                            _ => panic!(),
                         };
                         cur_node = parent.unwrap().upgrade().unwrap();
                     }
                     dir => {
                         let child = match cur_node.borrow().clone() {
                             Node::Dir { children, .. } => Rc::clone(children.get(dir).unwrap()),
-                            _ => panic!("a"),
+                            _ => panic!(),
                         };
                         cur_node = child;
                     }
