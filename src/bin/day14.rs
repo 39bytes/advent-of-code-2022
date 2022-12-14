@@ -1,7 +1,12 @@
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::{ops, path};
+use std::ops;
+
+fn main() {
+    println!("Solution to part 1: {}", part1());
+    println!("Solution to part 2: {}", part2());
+}
 
 #[derive(Debug, Hash, PartialEq, Eq, Copy, Clone)]
 struct Point(i32, i32);
@@ -18,11 +23,6 @@ impl ops::Add for Point {
     fn add(self, rhs: Self) -> Self::Output {
         Point(self.0 + rhs.0, self.1 + rhs.1)
     }
-}
-
-fn main() {
-    println!("Solution to part 1: {}", part1());
-    println!("Solution to part 2: {}", part2());
 }
 
 fn part1() -> u32 {
