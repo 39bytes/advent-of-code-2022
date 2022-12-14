@@ -9,25 +9,11 @@ enum Node {
     File(u64),
     Dir {
         children: HashMap<String, Rc<RefCell<Node>>>,
-        parent: Option<Rc<RefCell<Node>>>,
+        parent: Option<Weak<RefCell<Node>>>,
     },
 }
 
 impl Node {
-    // fn add_child(&mut self, name: String, child: Rc<RefCell<Node>>) {
-    //     match self {
-    //         Node::Dir {
-    //             ref mut children,
-    //             parent,
-    //         } => {
-    //             children.insert(name, child);
-    //             println!("{:?}", children);
-    //         }
-    //         Node::File(_) => {
-    //             panic!("Cannot call add_child on a file")
-    //         }
-    //     }
-    // }
     fn get_size(&self) -> u64 {
         match self {
             Node::File(size) => *size,
@@ -97,7 +83,7 @@ fn main() {
                             Node::Dir { parent, .. } => parent,
                             _ => panic!("a"),
                         };
-                        cur_node = parent.unwrap();
+                        cur_node = parent.unwrap().upgrade().unwrap();
                     }
                     dir => {
                         let child = match cur_node.borrow().clone() {
@@ -117,7 +103,7 @@ fn main() {
                                 String::from(*filename),
                                 Rc::new(RefCell::new(Node::Dir {
                                     children: HashMap::new(),
-                                    parent: Some(Rc::clone(&cur_node)),
+                                    parent: Some(Rc::downgrade(&Rc::clone(&cur_node))),
                                 })),
                             );
                         }
