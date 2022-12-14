@@ -103,7 +103,7 @@ fn main() {
                                 String::from(*filename),
                                 Rc::new(RefCell::new(Node::Dir {
                                     children: HashMap::new(),
-                                    parent: Some(Rc::downgrade(&Rc::clone(&cur_node))),
+                                    parent: Some(Rc::downgrade(&cur_node)),
                                 })),
                             );
                         }
