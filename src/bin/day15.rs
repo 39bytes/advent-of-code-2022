@@ -6,46 +6,56 @@ use std::time::Instant;
 
 fn main() {
     println!("Solution to part 1: {}", part1());
-    //println!("Solution to part 2: {}", part2());
+    println!("Solution to part 2: {}", part2());
 }
 
-fn part1() -> u32 {
+fn part1() -> i32 {
     let (sensors, beacons) = parse_input();
-    // let mut points = sensors.iter().map(|set| set.covered_points());
-    // let mut covered = points.next().unwrap();
-    // while let Some(set) = points.next() {
-    //     covered.extend(set);
-    // }
 
     let mut num_covered = 0;
-    for i in -5_000_000..5_000_000 {
-        let p = Point::new(i, 2_000_000);
+    let mut x = -2_000_000;
+    while x <= 5_000_000 {
+        let p = Point::new(x, 2_000_000);
         for sensor in &sensors {
             if sensor.in_radius(p) && !beacons.contains(&p) {
-                num_covered += 1;
+                let skip =
+                    sensor.position.x - x - (sensor.position.y - 2_000_000).abs() + sensor.radius;
+                num_covered += skip + 1;
+                x += skip;
                 break;
             }
         }
+        x += 1;
     }
-    num_covered
+    num_covered - 1
 }
 
 fn part2() -> i64 {
-    let (sensors, beacons) = parse_input();
+    let (sensors, _) = parse_input();
 
-    let mut distress_beacon = Point::new(0, 0);
-    for x in 0..=4_000_000 {
-        for y in 0..=4_000_000 {
+    let mut x = 0;
+    let mut y = 0;
+    while y <= 4_000_000 {
+        while x <= 4_000_000 {
             let p = Point::new(x, y);
+            let mut found = true;
             for sensor in &sensors {
-                if !sensor.in_radius(p) {
-                    distress_beacon = p;
+                if sensor.in_radius(p) {
+                    let skip =
+                        sensor.position.x - x - (sensor.position.y - y).abs() + sensor.radius + 1;
+                    x += skip;
+                    found = false;
                     break;
                 }
             }
+            if found {
+                return p.x as i64 * 4_000_000 + p.y as i64;
+            }
         }
+        x = 0;
+        y += 1;
     }
-    distress_beacon.x as i64 * 4_000_000 + distress_beacon.y as i64
+    -1
 }
 
 fn parse_input() -> (Vec<Sensor>, Vec<Point>) {
@@ -73,7 +83,7 @@ fn parse_sensor_line(line: String) -> (Sensor, Point) {
     let sensor_pos = Point::from_str(sensor_pos);
     let beacon_pos = Point::from_str(beacon_pos);
 
-    let sensor_radius = (sensor_pos - beacon_pos).manhattan_dist();
+    let sensor_radius = sensor_pos.manhattan_dist(beacon_pos);
 
     return (
         Sensor {
@@ -84,7 +94,7 @@ fn parse_sensor_line(line: String) -> (Sensor, Point) {
     );
 }
 
-#[derive(Hash, Eq, PartialEq, Clone, Copy)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 struct Point {
     x: i32,
     y: i32,
@@ -112,11 +122,12 @@ impl Point {
         }
     }
 
-    fn manhattan_dist(&self) -> i32 {
-        self.x.abs() + self.y.abs()
+    fn manhattan_dist(&self, other: Self) -> i32 {
+        (self.x - other.x).abs() + (self.y - other.y).abs()
     }
 }
 
+#[derive(Debug)]
 struct Sensor {
     position: Point,
     radius: i32,
@@ -124,39 +135,6 @@ struct Sensor {
 
 impl Sensor {
     fn in_radius(&self, p: Point) -> bool {
-        (self.position - p).manhattan_dist() <= self.radius
+        self.position.manhattan_dist(p) <= self.radius
     }
-
-    // fn covered_points(&self) -> HashSet<Point> {
-    //     let mut covered: HashSet<Point> = HashSet::new();
-    //     for start_x in self.position.x - self.radius..=self.position.x {
-    //         let mut x = start_x;
-    //         let mut y = self.position.y;
-    //         // Down right diagonal
-    //         while x < self.position.x {
-    //             covered.insert(Point::new(x, y));
-    //             x += 1;
-    //             y += 1;
-    //         }
-    //         // Up right diagonal
-    //         while x < self.position.x + self.radius {
-    //             covered.insert(Point::new(x, y));
-    //             x += 1;
-    //             y -= 1;
-    //         }
-    //         // Up left diagonal
-    //         while x > self.position.x {
-    //             covered.insert(Point::new(x, y));
-    //             x -= 1;
-    //             y -= 1;
-    //         }
-    //         // Down left diagonal
-    //         while x > self.position.x - self.radius {
-    //             covered.insert(Point::new(x, y));
-    //             x -= 1;
-    //             y += 1;
-    //         }
-    //     }
-    //     covered
-    // }
 }
