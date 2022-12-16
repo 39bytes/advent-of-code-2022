@@ -1,8 +1,6 @@
-use std::collections::HashSet;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::ops;
-use std::time::Instant;
 
 fn main() {
     println!("Solution to part 1: {}", part1());
