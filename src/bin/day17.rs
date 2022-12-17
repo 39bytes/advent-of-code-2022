@@ -1,5 +1,4 @@
 use std::fs;
-use std::time::Instant;
 
 const GRID_WIDTH: usize = 7;
 
@@ -41,7 +40,7 @@ fn solve(shapes: &Vec<Vec<Vec<char>>>, moves: &str, n: usize) -> usize {
 
     let mut remaining_pieces = n;
     let mut start_height = 0; // The height before the cycle begins
-    let mut num_landed_before_cycle = 0; // The height before the cycle begins
+    let mut num_landed_before_cycle = 0; // Number of pieces before the cycle begins
     let mut cycle_height = 0;
     let mut total_height = 0;
 
