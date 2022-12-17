@@ -21,20 +21,14 @@ fn main() {
     ];
     let moves = fs::read_to_string("inputs/day17.txt").unwrap();
 
-    let now = Instant::now();
-    let part1sol = part1(&shapes, moves.trim());
-    let elapsed = now.elapsed();
-    println!("Solution to part 1: {}", part1sol);
-    println!("Time elapsed: {:.2?}", elapsed);
-
-    let now = Instant::now();
-    let part2sol = part2(&shapes, moves.trim());
-    let elapsed = now.elapsed();
-    println!("Solution to part 2: {}", part2sol);
-    println!("Time elapsed: {:.2?}", elapsed);
+    println!("Solution to part 1: {}", solve(&shapes, moves.trim(), 2022));
+    println!(
+        "Solution to part 2: {}",
+        solve(&shapes, moves.trim(), 1_000_000_000_000)
+    );
 }
 
-fn part1(shapes: &Vec<Vec<Vec<char>>>, moves: &str) -> usize {
+fn solve(shapes: &Vec<Vec<Vec<char>>>, moves: &str, n: usize) -> usize {
     let mut board = Board::new();
     let moves: Vec<char> = moves.chars().collect();
     let mut move_index: usize = 0;
@@ -45,65 +39,7 @@ fn part1(shapes: &Vec<Vec<Vec<char>>>, moves: &str) -> usize {
         shape: &shapes[num_landed],
     };
 
-    while num_landed < 2022 {
-        match moves[move_index] {
-            '>' => {
-                let right = (1, 0);
-
-                if board.can_move(right, &cur_piece) {
-                    cur_piece.move_piece(right);
-                }
-            }
-            '<' => {
-                let left = (-1, 0);
-
-                if board.can_move(left, &cur_piece) {
-                    cur_piece.move_piece(left);
-                }
-            }
-            _ => panic!("Invalid move"),
-        }
-
-        let down = (0, -1);
-
-        if board.can_move(down, &cur_piece) {
-            cur_piece.move_piece(down);
-        } else {
-            board.land_piece(&cur_piece);
-            num_landed += 1;
-
-            let next_shape = &shapes[num_landed % 5];
-            let spawn_y = board.get_tower_height() + 2 + next_shape.len();
-            cur_piece = Piece {
-                x: 2,
-                y: spawn_y as isize,
-                shape: next_shape,
-            };
-
-            if spawn_y >= board.grid.len() {
-                board.expand(spawn_y - board.grid.len() + 1);
-            }
-        }
-
-        //move_index += 1;
-        move_index = (move_index + 1) % moves.len();
-    }
-    board.get_tower_height()
-}
-
-fn part2(shapes: &Vec<Vec<Vec<char>>>, moves: &str) -> usize {
-    let mut board = Board::new();
-    let moves: Vec<char> = moves.chars().collect();
-    let mut move_index: usize = 0;
-    let mut num_landed = 0;
-    let mut cur_piece = Piece {
-        x: 2,
-        y: 3,
-        shape: &shapes[num_landed],
-    };
-
-    const TOTAL_PIECES: usize = 1_000_000_000_000;
-    let mut remaining_pieces = TOTAL_PIECES;
+    let mut remaining_pieces = n;
     let mut start_height = 0; // The height before the cycle begins
     let mut num_landed_before_cycle = 0; // The height before the cycle begins
     let mut cycle_height = 0;
@@ -147,9 +83,9 @@ fn part2(shapes: &Vec<Vec<Vec<char>>>, moves: &str) -> usize {
                 else {
                     let cycle_length = num_landed - num_landed_before_cycle;
                     cycle_height = board.get_tower_height() - start_height;
-                    let num_cycles = (TOTAL_PIECES - num_landed_before_cycle) / cycle_length;
+                    let num_cycles = (n - num_landed_before_cycle) / cycle_length;
                     total_height += cycle_height * num_cycles + start_height;
-                    remaining_pieces = (TOTAL_PIECES - num_landed_before_cycle) % cycle_length;
+                    remaining_pieces = (n - num_landed_before_cycle) % cycle_length;
                 }
             }
 
@@ -168,8 +104,12 @@ fn part2(shapes: &Vec<Vec<Vec<char>>>, moves: &str) -> usize {
         }
         move_index = (move_index + 1) % moves.len();
     }
-    total_height += board.get_tower_height() - cycle_height - start_height;
-    total_height
+    // There was a cycle
+    if total_height > 0 {
+        return total_height + board.get_tower_height() - cycle_height - start_height;
+    }
+    // No cycle
+    board.get_tower_height()
 }
 
 struct Board {
