@@ -89,8 +89,32 @@ fn test_blueprint(
     };
 
     let mut results = Vec::new();
-    if minutes_left > 1 {
-        // Robots should take a minute to build, currently they start producing resources immediately..
+
+    if minutes_left <= 1 {
+        return test_blueprint(
+            dp,
+            blueprint,
+            ResourceState { ..state },
+            minutes_left - 1,
+            (0, 0, 0, 0),
+        );
+    }
+
+    // Prioritize building geode robots whenever possible
+    if state.ore >= blueprint.geode_robot_cost.0 && state.obsidian >= blueprint.geode_robot_cost.1 {
+        // Build geode robot
+        results.push(test_blueprint(
+            dp,
+            blueprint,
+            ResourceState {
+                ore: state.ore - blueprint.geode_robot_cost.0,
+                obsidian: state.obsidian - blueprint.geode_robot_cost.1,
+                ..state
+            },
+            minutes_left - 1,
+            (0, 0, 0, 1),
+        ))
+    } else {
         if state.ore >= blueprint.ore_robot_cost
             && (state.ore_robots * minutes_left + state.ore)
                 < ([
@@ -151,25 +175,7 @@ fn test_blueprint(
                 (0, 0, 1, 0),
             ))
         }
-
-        if state.ore >= blueprint.geode_robot_cost.0
-            && state.obsidian >= blueprint.geode_robot_cost.1
-        {
-            // Build geode robot
-            results.push(test_blueprint(
-                dp,
-                blueprint,
-                ResourceState {
-                    ore: state.ore - blueprint.geode_robot_cost.0,
-                    obsidian: state.obsidian - blueprint.geode_robot_cost.1,
-                    ..state
-                },
-                minutes_left - 1,
-                (0, 0, 0, 1),
-            ))
-        }
     }
-
     // Do nothing
     results.push(test_blueprint(
         dp,
