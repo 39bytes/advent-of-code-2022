@@ -1,19 +1,13 @@
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::cmp::max;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::time::Instant;
 
 fn main() {
     let blueprints = parse_input("inputs/day19.txt");
 
-    let now = Instant::now();
-    let part1_sol = part1(&blueprints);
-    let elapsed = now.elapsed();
-    println!("Solution to part 1: {}", part1_sol);
-    println!("Solved in: {:.2?}", elapsed);
+    println!("Solution to part 1: {}", part1(&blueprints));
     println!("Solution to part 2: {}", part2(&blueprints));
 }
 
@@ -38,7 +32,6 @@ fn part1(blueprints: &Vec<Blueprint>) -> u32 {
             24,
             (0, 0, 0, 0),
         );
-        println!("{}", geodes);
         sum_quality += (i + 1) as u32 * geodes;
     }
     sum_quality
@@ -64,7 +57,6 @@ fn part2(blueprints: &Vec<Blueprint>) -> u32 {
             32,
             (0, 0, 0, 0),
         );
-        println!("{}", geodes);
         result *= geodes;
     }
     result
