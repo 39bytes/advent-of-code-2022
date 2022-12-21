@@ -1,51 +1,36 @@
 use std::collections::{HashMap, VecDeque};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path;
 
 fn main() {
-    part1();
-}
-
-fn part1() {
     let (valves, mut flow_valves) = parse_input();
+    flow_valves.insert(0, String::from("AA"));
 
-    let mut flow_per_min = 0;
-    let mut pressure_released = 0;
-    let mut minutes_left: u32 = 30;
-
-    // Store visited flow valves in Vec
-
-    let mut cur_valve = valves.get("AA").unwrap();
-    flow_valves.push(String::from("AA"));
-
-    let weighted_valves = get_weighted_nodes_list(valves, flow_valves);
-    let mut remaining = weighted_valves.clone();
-    remaining.remove("AA");
-    let max_pressure = dfs(&weighted_valves, remaining.clone(), "AA", 30);
-
-    // let mut human_remaining: HashMap<String, WeightedNode> = HashMap::new();
-    // let keys: Vec<String> = remaining.keys().map(|x| x.clone()).collect();
-
-    // let pressures =
-    // for key in keys {
-    //     human_remaining.insert(key.clone(), remaining.remove(&key).unwrap());
-    // }
-
-    // let (max_human, remaining_valves) = dfs(&weighted_valves, remaining.clone(), "AA", 26);
-    // println!("{:?}", remaining_valves);
-    // let (max_elephant, _) = dfs(&weighted_valves, remaining_valves, "AA", 26);
-
-    println!("Solution to part 1: {}", max_pressure);
-    let max_pressure2 = dfs2(&weighted_valves, remaining.clone(), ("AA", "AA"), (26, 26));
-    println!("Solution to part 2: {}", max_pressure2);
+    let graph = get_weighted_graph(valves, flow_valves);
+    println!("Solution to part 1: {}", part1(&graph));
+    println!("Solution to part 2: {}", part2(&graph));
 }
 
-fn get_weighted_nodes_list(
+fn part1(graph: &Vec<(String, WeightedNode)>) -> u32 {
+    dfs(graph, u16::MAX, 1, 30)
+}
+
+fn part2(graph: &Vec<(String, WeightedNode)>) -> u32 {
+    let mut highest = 0;
+    for i in 0..u16::MAX {
+        let pressure = dfs(graph, i, 1, 26) + dfs(graph, !i, 1, 26);
+        if pressure > highest {
+            highest = pressure;
+        }
+    }
+    highest
+}
+
+fn get_weighted_graph(
     valves: HashMap<String, Valve>,
     flow_valves: Vec<String>,
-) -> HashMap<String, WeightedNode> {
-    let mut weighted_valves: HashMap<String, WeightedNode> = HashMap::new();
+) -> Vec<(String, WeightedNode)> {
+    let mut weighted_valves: Vec<(String, WeightedNode)> = Vec::new();
 
     for valve in flow_valves.iter() {
         let mut queue: VecDeque<&Valve> = VecDeque::new();
@@ -77,100 +62,45 @@ fn get_weighted_nodes_list(
                 }
             }
         }
-        weighted_valves.insert(
+        weighted_valves.push((
             valve.name.clone(),
             WeightedNode {
                 name: valve.name.clone(),
                 flow_rate: valve.flow_rate,
                 adjacent: weighted_adjacents,
             },
-        );
+        ));
     }
 
     weighted_valves
 }
 
 fn dfs(
-    weighted_valves: &HashMap<String, WeightedNode>,
-    remaining: HashMap<String, WeightedNode>,
-    current: &str,
+    graph: &Vec<(String, WeightedNode)>,
+    remaining: u16,
+    current: u16,
     minutes_left: u32,
 ) -> u32 {
     let mut results: Vec<u32> = Vec::new();
 
-    for (name, valve) in &remaining {
-        let current_valve = weighted_valves.get(current).unwrap();
-        let distance = current_valve.adjacent.get(name).unwrap();
+    let remaining = if current != 1 {
+        remaining ^ current
+    } else {
+        remaining & (u16::MAX - 1)
+    };
+    let (cur_valve_name, cur_valve) = &graph[current.trailing_zeros() as usize];
 
-        if distance >= &minutes_left {
-            continue;
-        }
-
-        let minutes_left = minutes_left - distance - 1;
-        let pressure = valve.flow_rate * minutes_left;
-
-        let mut remaining_valves: HashMap<String, WeightedNode> = remaining.clone();
-        remaining_valves.remove(name);
-
-        let best = pressure + dfs(&weighted_valves, remaining_valves, name, minutes_left);
-
-        results.push(best);
-    }
-    *results.iter().max().unwrap_or(&0)
-}
-
-fn dfs2(
-    weighted_valves: &HashMap<String, WeightedNode>,
-    remaining: HashMap<String, WeightedNode>,
-    current: (&str, &str),
-    minutes_left: (u32, u32),
-) -> u32 {
-    let mut results: Vec<u32> = Vec::new();
-
-    let mut remaining = remaining.clone();
-    remaining.remove(current.0);
-    remaining.remove(current.1);
-
-    for (human_valve_name, human_valve) in &remaining {
-        if current.0 == "AA" {
-            println!("{human_valve_name}");
-        }
-        let current_human_valve = weighted_valves.get(current.0).unwrap();
-        let human_distance = current_human_valve.adjacent.get(human_valve_name).unwrap();
-
-        if human_distance >= &minutes_left.0 {
-            continue;
-        }
-
-        let human_minutes_left = minutes_left.0 - human_distance - 1;
-        let human_pressure = human_valve.flow_rate * human_minutes_left;
-        for (elephant_valve_name, elephant_valve) in &remaining {
-            if elephant_valve_name == human_valve_name {
+    for (i, (name, valve)) in graph.iter().enumerate() {
+        if remaining & (1 << i) != 0 {
+            let distance = cur_valve.adjacent.get(name).unwrap();
+            if distance >= &minutes_left {
                 continue;
             }
 
-            let current_elephant_valve = weighted_valves.get(current.1).unwrap();
-            let elephant_distance = current_elephant_valve
-                .adjacent
-                .get(elephant_valve_name)
-                .unwrap();
+            let minutes_left = minutes_left - distance - 1;
+            let pressure = valve.flow_rate * minutes_left;
 
-            if elephant_distance >= &minutes_left.1 {
-                continue;
-            }
-
-            let elephant_minutes_left = minutes_left.1 - elephant_distance - 1;
-            let elephant_pressure = elephant_valve.flow_rate * elephant_minutes_left;
-
-            let best = human_pressure
-                + elephant_pressure
-                + dfs2(
-                    weighted_valves,
-                    remaining.clone(),
-                    (human_valve_name, elephant_valve_name),
-                    (human_minutes_left, elephant_minutes_left),
-                );
-
+            let best = pressure + dfs(&graph, remaining, 1 << i, minutes_left);
             results.push(best);
         }
     }
