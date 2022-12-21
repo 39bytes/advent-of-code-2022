@@ -65,7 +65,6 @@ fn get_weighted_graph(
         weighted_valves.push((
             valve.name.clone(),
             WeightedNode {
-                name: valve.name.clone(),
                 flow_rate: valve.flow_rate,
                 adjacent: weighted_adjacents,
             },
@@ -88,7 +87,7 @@ fn dfs(
     } else {
         remaining & (u16::MAX - 1)
     };
-    let (cur_valve_name, cur_valve) = &graph[current.trailing_zeros() as usize];
+    let (_, cur_valve) = &graph[current.trailing_zeros() as usize];
 
     for (i, (name, valve)) in graph.iter().enumerate() {
         if remaining & (1 << i) != 0 {
@@ -116,7 +115,6 @@ struct Valve {
 
 #[derive(Debug, Clone)]
 struct WeightedNode {
-    name: String,
     flow_rate: u32,
     adjacent: HashMap<String, u32>,
 }
