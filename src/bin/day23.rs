@@ -11,86 +11,16 @@ fn main() {
 }
 
 fn part1(initial_state: HashSet<Elf>) -> u32 {
-    let mut rounds = 0;
-    let mut elves = initial_state;
-
-    let mut directions = VecDeque::from([
-        Direction::North,
-        Direction::South,
-        Direction::West,
-        Direction::East,
-    ]);
-
-    while rounds < 10 {
-        let mut proposed: HashMap<Point, Vec<Elf>> = HashMap::new();
-        for elf in elves.iter() {
-            let n = elves.contains(&(elf.0, elf.1 - 1));
-            let ne = elves.contains(&(elf.0 + 1, elf.1 - 1));
-            let nw = elves.contains(&(elf.0 - 1, elf.1 - 1));
-            let s = elves.contains(&(elf.0, elf.1 + 1));
-            let se = elves.contains(&(elf.0 + 1, elf.1 + 1));
-            let sw = elves.contains(&(elf.0 - 1, elf.1 + 1));
-            let e = elves.contains(&(elf.0 + 1, elf.1));
-            let w = elves.contains(&(elf.0 - 1, elf.1));
-
-            // Check all adjacent
-            if [n, ne, nw, s, se, sw, e, w].iter().all(|x| !x) {
-                proposed.entry(*elf).or_default().push(*elf);
-                continue;
-            }
-
-            let proposed_dir = {
-                let mut proposed_dir = None;
-                for dir in &directions {
-                    let to_check = match dir {
-                        Direction::North => [n, ne, nw],
-                        Direction::South => [s, se, sw],
-                        Direction::West => [w, nw, sw],
-                        Direction::East => [e, ne, se],
-                    };
-
-                    if to_check.iter().all(|x| !x) {
-                        proposed_dir = Some(dir);
-                        break;
-                    }
-                }
-                proposed_dir
-            };
-
-            if let Some(dir) = proposed_dir {
-                let new_pos = match dir {
-                    Direction::North => (elf.0, elf.1 - 1),
-                    Direction::South => (elf.0, elf.1 + 1),
-                    Direction::West => (elf.0 - 1, elf.1),
-                    Direction::East => (elf.0 + 1, elf.1),
-                };
-                proposed.entry(new_pos).or_default().push(*elf);
-            } else {
-                proposed.entry(*elf).or_default().push(*elf);
-            }
-        }
-
-        let mut new_elves = HashSet::new();
-        for (pos, proposed_elves) in proposed {
-            if proposed_elves.len() == 1 {
-                new_elves.insert(pos);
-            } else {
-                for elf in proposed_elves.iter() {
-                    new_elves.insert(*elf);
-                }
-            }
-        }
-        elves = new_elves;
-
-        let d = directions.pop_front().unwrap();
-        directions.push_back(d);
-        rounds += 1;
-    }
-
-    get_empty_tiles(&elves)
+    let (final_state, _) = simulate(initial_state, 10);
+    get_empty_tiles(&final_state)
 }
 
 fn part2(initial_state: HashSet<Elf>) -> u32 {
+    let (_, rounds) = simulate(initial_state, u32::MAX);
+    rounds
+}
+
+fn simulate(initial_state: HashSet<Elf>, max_rounds: u32) -> (HashSet<Elf>, u32) {
     let mut rounds = 0;
     let mut elves = initial_state;
 
@@ -101,9 +31,10 @@ fn part2(initial_state: HashSet<Elf>) -> u32 {
         Direction::East,
     ]);
 
-    loop {
+    while rounds < max_rounds {
         let mut proposed: HashMap<Point, Vec<Elf>> = HashMap::new();
         let mut moved_this_round = false;
+
         for elf in elves.iter() {
             let n = elves.contains(&(elf.0, elf.1 - 1));
             let ne = elves.contains(&(elf.0 + 1, elf.1 - 1));
@@ -152,9 +83,12 @@ fn part2(initial_state: HashSet<Elf>) -> u32 {
             }
         }
 
+        rounds += 1;
+
         if !moved_this_round {
-            return rounds + 1;
+            return (elves, rounds);
         }
+
         let mut new_elves = HashSet::new();
         for (pos, proposed_elves) in proposed {
             if proposed_elves.len() == 1 {
@@ -169,8 +103,8 @@ fn part2(initial_state: HashSet<Elf>) -> u32 {
 
         let d = directions.pop_front().unwrap();
         directions.push_back(d);
-        rounds += 1;
     }
+    (elves, rounds)
 }
 
 fn get_bounding_box(elves: &HashSet<Elf>) -> (Point, Point) {
