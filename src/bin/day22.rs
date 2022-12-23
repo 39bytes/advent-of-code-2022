@@ -47,7 +47,7 @@ fn part2(map: &Vec<Vec<char>>, moves: &Vec<&str>) -> i32 {
     for mov in moves.iter() {
         if let Ok(steps) = mov.parse::<u32>() {
             for _ in 0..steps {
-                let (new_pos, new_dir) = pos.wrap_quadrant_add(map, dir);
+                let (new_pos, new_dir) = pos.wrap_face_add(map, dir);
                 if map[new_pos.1 as usize][new_pos.0 as usize] != '#' {
                     pos = new_pos;
                     dir = new_dir;
@@ -159,7 +159,7 @@ impl Point {
         Point(new_x, new_y)
     }
 
-    fn wrap_quadrant_add(&self, map: &Vec<Vec<char>>, dir: usize) -> (Point, usize) {
+    fn wrap_face_add(&self, map: &Vec<Vec<char>>, dir: usize) -> (Point, usize) {
         // 0 - Right
         // 1 - Down
         // 2 - Left
