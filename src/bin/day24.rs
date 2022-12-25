@@ -8,7 +8,7 @@ fn main() {
     let (initial_state, map, start, goal) = parse_input("inputs/day24.txt");
 
     let mut prev_state = initial_state;
-    let mut blizzard_states: Vec<Vec<Point>> = vec![prev_state.iter().map(|b| b.pos).collect()];
+    let mut blizzard_states: Vec<HashSet<Point>> = vec![prev_state.iter().map(|b| b.pos).collect()];
 
     for _ in 0..1000 {
         let next_state = next_blizzard_state(&prev_state, &map);
@@ -27,7 +27,7 @@ fn main() {
 }
 
 fn part1(
-    blizzard_states: &Vec<Vec<Point>>,
+    blizzard_states: &Vec<HashSet<Point>>,
     map: &Vec<Vec<char>>,
     start: Point,
     goal: Point,
@@ -36,7 +36,7 @@ fn part1(
 }
 
 fn part2(
-    blizzard_states: &Vec<Vec<Point>>,
+    blizzard_states: &Vec<HashSet<Point>>,
     map: &Vec<Vec<char>>,
     start: Point,
     goal: Point,
@@ -48,7 +48,7 @@ fn part2(
 }
 
 fn bfs(
-    blizzard_states: &Vec<Vec<Point>>,
+    blizzard_states: &Vec<HashSet<Point>>,
     map: &Vec<Vec<char>>,
     start: Point,
     goal: Point,
